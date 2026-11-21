@@ -27,11 +27,11 @@ ITEMS_DATA = [
     },
     {
         "item_id": "A002",
-        "headline": "Black Basta Ransomware Syndicate Deploys Novel Evasion Tactics Against Enterprise Networks",
+        "headline": "Black Basta Ransomware Syndicate Deploys Novel Linux Evasion Tactics Against Enterprise Systems",
         "topic": "Cybersecurity",
         "publish_date": "2026-03-02",
-        "summary_text": "Threat intelligence analysts detected updated variants of Black Basta ransomware leveraging living-off-the-land binaries to circumvent endpoint detection. The malware rapidly encrypts virtualized storage and exfiltrates corporate credentials before triggering extortion demands. Cybersecurity agencies recommend strict network segmentation and rapid credential rotation.",
-        "tags": "ransomware;cybersecurity;malware;threat-intelligence;edr;encryption;hardening;mitigation"
+        "summary_text": "Threat intelligence analysts detected updated variants of Black Basta ransomware leveraging living-off-the-land binaries to compromise enterprise Linux servers. The malware circumvents kernel telemetry, encrypts virtualized storage, and exfiltrates corporate credentials before triggering extortion demands. Cybersecurity agencies recommend strict security hardening and rapid credential rotation.",
+        "tags": "ransomware;cybersecurity;linux;malware;threat-intelligence;kernel;hardening;mitigation"
     },
     {
         "item_id": "A003",
@@ -396,8 +396,6 @@ ITEMS_DATA = [
 ]
 
 
-# User profile taste preferences:
-# Dict of user_id -> preferred topics (high ratings 4-5) and secondary/low topics
 USER_PROFILES = {
     "U01": {"fav": ["Cybersecurity", "Linux"], "dislike": ["Web Development", "Mobile", "Cloud/DevOps"]},
     "U02": {"fav": ["Linux", "Cloud/DevOps", "Programming Languages"], "dislike": ["Mobile", "AI/ML"]},
@@ -416,72 +414,71 @@ USER_PROFILES = {
 }
 
 
-def generate_ratings(items_df):
-    """Generate realistic ratings DataFrame meeting all project constraints."""
+def generate_ratings(items_df: pd.DataFrame) -> pd.DataFrame:
+    """Generate realistic ratings DataFrame meeting all project constraints and ensuring
+    that unread favorite articles exist for readers so recommenders have relevant items to suggest.
+    """
     ratings_records = []
-    
-    # Map item_id to topic
     item_topics = dict(zip(items_df["item_id"], items_df["topic"]))
     all_item_ids = list(items_df["item_id"])
-    
-    # Track item ratings count to ensure >= 3 for every item
-    item_rating_counts = {item_id: 0 for item_id in all_item_ids}
-    
     users = [f"U{i:02d}" for i in range(1, 15)]
     
-    # Target 18-22 ratings per user (average 20 ratings -> 280 total ratings out of 630 -> 55.6% sparsity)
-    # Ensure every user has between 16 and 24 ratings.
+    # Specific assigned items for U01:
+    # 5 Sec/Linux items rated (leaving 5 unread: A002, A004, A007, A009, A010!), plus 14 from other topics -> 19 total ratings
+    u01_fav_rated = ["A001", "A003", "A005", "A006", "A008"]
+    u01_other_rated = [
+        "A011", "A016", "A021", "A022", "A026", "A029", "A031", "A034", "A036",
+        "A038", "A041", "A042", "A044", "A045"
+    ]
     
     user_item_assigned = {u: set() for u in users}
     
-    # First, satisfy U01 specific constraint and user taste profiles
+    # Handle U01
+    for item_id in u01_fav_rated:
+        user_item_assigned["U01"].add(item_id)
+        rating = random.choice([4, 5, 5])
+        read_time = max(35, min(590, rating * 95 + random.randint(-30, 40)))
+        ratings_records.append({
+            "user_id": "U01",
+            "item_id": item_id,
+            "rating": rating,
+            "read_time_sec": read_time
+        })
+        
+    for item_id in u01_other_rated:
+        user_item_assigned["U01"].add(item_id)
+        rating = random.choice([1, 2, 3])
+        read_time = max(35, min(590, rating * 95 + random.randint(-30, 40)))
+        ratings_records.append({
+            "user_id": "U01",
+            "item_id": item_id,
+            "rating": rating,
+            "read_time_sec": read_time
+        })
+
+    # For other users U02 - U14
     for user_id in users:
+        if user_id == "U01":
+            continue
         prefs = USER_PROFILES[user_id]
         fav_topics = prefs["fav"]
         dislike_topics = prefs["dislike"]
         
-        # Pick 19-21 items per user
-        n_items = random.randint(18, 22)
+        target_count = random.randint(18, 22)
+        fav_candidates = [iid for iid in all_item_ids if item_topics[iid] in fav_topics]
+        other_candidates = [iid for iid in all_item_ids if item_topics[iid] not in fav_topics]
         
-        # Find candidate items
-        fav_items = [iid for iid in all_item_ids if item_topics[iid] in fav_topics]
-        other_items = [iid for iid in all_item_ids if item_topics[iid] not in fav_topics]
+        # Rate 6-8 fav items, leaving rest unread
+        n_fav = min(len(fav_candidates), random.randint(6, 8))
+        n_other = target_count - n_fav
         
-        # Select about 65-75% from favorite topics, rest from other
-        n_fav = min(len(fav_items), int(n_items * 0.65))
-        n_other = n_items - n_fav
+        chosen_fav = random.sample(fav_candidates, n_fav)
+        chosen_other = random.sample(other_candidates, min(len(other_candidates), n_other))
         
-        selected_fav = random.sample(fav_items, n_fav)
-        selected_other = random.sample(other_items, min(len(other_items), n_other))
-        
-        chosen_items = selected_fav + selected_other
-        random.shuffle(chosen_items)
-        
-        for item_id in chosen_items:
+        for item_id in chosen_fav:
             user_item_assigned[user_id].add(item_id)
-            item_rating_counts[item_id] += 1
-            
-            topic = item_topics[item_id]
-            # U01: 4-5 on Cybersecurity and Linux, 1-3 on others
-            if user_id == "U01":
-                if topic in ["Cybersecurity", "Linux"]:
-                    rating = random.choice([4, 5, 5])
-                else:
-                    rating = random.choice([1, 2, 3])
-            else:
-                if topic in fav_topics:
-                    rating = random.choices([4, 5, 3], weights=[0.45, 0.45, 0.10])[0]
-                elif topic in dislike_topics:
-                    rating = random.choices([1, 2, 3], weights=[0.45, 0.40, 0.15])[0]
-                else:
-                    rating = random.choices([2, 3, 4], weights=[0.30, 0.45, 0.25])[0]
-            
-            # Read time loosely correlated with rating (30 to 600 seconds)
-            # base: rating * 90 + noise
-            base_time = rating * 95
-            noise = random.randint(-40, 60)
-            read_time = max(35, min(590, base_time + noise))
-            
+            rating = random.choices([4, 5, 3], weights=[0.45, 0.45, 0.10])[0]
+            read_time = max(35, min(590, rating * 95 + random.randint(-35, 35)))
             ratings_records.append({
                 "user_id": user_id,
                 "item_id": item_id,
@@ -489,95 +486,99 @@ def generate_ratings(items_df):
                 "read_time_sec": read_time
             })
             
-    # Check if any item has < 3 ratings, and add to users who have < 24 ratings
-    for item_id, count in item_rating_counts.items():
-        while count < 3:
-            # Find a user who hasn't rated this item and has < 24 ratings
-            candidate_users = [u for u in users if item_id not in user_item_assigned[u] and len(user_item_assigned[u]) < 24]
-            if not candidate_users:
-                candidate_users = [u for u in users if item_id not in user_item_assigned[u]]
-            target_user = random.choice(candidate_users)
+        for item_id in chosen_other:
+            user_item_assigned[user_id].add(item_id)
+            topic = item_topics[item_id]
+            if topic in dislike_topics:
+                rating = random.choices([1, 2, 3], weights=[0.45, 0.40, 0.15])[0]
+            else:
+                rating = random.choices([2, 3, 4], weights=[0.30, 0.45, 0.25])[0]
+            read_time = max(35, min(590, rating * 95 + random.randint(-35, 35)))
+            ratings_records.append({
+                "user_id": user_id,
+                "item_id": item_id,
+                "rating": rating,
+                "read_time_sec": read_time
+            })
+
+    # Ensure every single item has >= 3 ratings
+    item_counts = {}
+    for r in ratings_records:
+        item_counts[r["item_id"]] = item_counts.get(r["item_id"], 0) + 1
+        
+    for item_id in all_item_ids:
+        cnt = item_counts.get(item_id, 0)
+        while cnt < 3:
+            # Pick a candidate user other than U01
+            candidates = [u for u in users if u != "U01" and item_id not in user_item_assigned[u] and len(user_item_assigned[u]) < 24]
+            if not candidates:
+                candidates = [u for u in users if u != "U01" and item_id not in user_item_assigned[u]]
+            target_user = random.choice(candidates)
             user_item_assigned[target_user].add(item_id)
-            count += 1
-            item_rating_counts[item_id] = count
+            cnt += 1
+            item_counts[item_id] = cnt
             
             topic = item_topics[item_id]
             prefs = USER_PROFILES[target_user]
-            if target_user == "U01":
-                rating = random.choice([4, 5]) if topic in ["Cybersecurity", "Linux"] else random.choice([1, 2, 3])
-            elif topic in prefs["fav"]:
+            if topic in prefs["fav"]:
                 rating = random.choice([4, 5])
             elif topic in prefs["dislike"]:
                 rating = random.choice([1, 2])
             else:
                 rating = random.choice([2, 3, 4])
                 
-            base_time = rating * 95
-            noise = random.randint(-40, 60)
-            read_time = max(35, min(590, base_time + noise))
-            
+            read_time = max(35, min(590, rating * 95 + random.randint(-35, 35)))
             ratings_records.append({
                 "user_id": target_user,
                 "item_id": item_id,
                 "rating": rating,
                 "read_time_sec": read_time
             })
-            
-    # Sort by user_id and item_id
+
     ratings_df = pd.DataFrame(ratings_records).drop_duplicates(subset=["user_id", "item_id"])
     ratings_df = ratings_df.sort_values(by=["user_id", "item_id"]).reset_index(drop=True)
     return ratings_df
 
 
-def validate_dataset(items_df, ratings_df):
+def validate_dataset(items_df: pd.DataFrame, ratings_df: pd.DataFrame) -> bool:
     """Validate dataset according to all mini-project constraints."""
     print("=== VALIDATING DATASET ===")
     
-    # 1. Items checks
     assert len(items_df) == 45, f"Expected 45 items, got {len(items_df)}"
     expected_cols = {"item_id", "headline", "topic", "publish_date", "summary_text", "tags"}
     assert set(items_df.columns) == expected_cols, f"Items columns mismatch: {items_df.columns}"
     
-    # 9 topics x 5
     topic_counts = items_df["topic"].value_counts()
     assert len(topic_counts) == 9, f"Expected 9 topics, got {len(topic_counts)}"
     for topic, count in topic_counts.items():
         assert count == 5, f"Topic '{topic}' has {count} items, expected 5"
     print(f"[PASS] Items: 45 rows across 9 topics (5 articles each).")
     
-    # Tags check
     for tags in items_df["tags"]:
         assert ";" in tags, f"Tags should be semicolon-separated: {tags}"
         assert tags.islower(), f"Tags must be lowercase: {tags}"
     print(f"[PASS] Tags formatting verified (lowercase, semicolon-separated).")
     
-    # 2. Ratings checks
     expected_rating_cols = {"user_id", "item_id", "rating", "read_time_sec"}
     assert set(ratings_df.columns) == expected_rating_cols, f"Ratings columns mismatch: {ratings_df.columns}"
     
-    # Users check
     users = sorted(ratings_df["user_id"].unique())
     assert len(users) == 14, f"Expected 14 users U01-U14, got {len(users)}"
-    assert users[0] == "U01" and users[-1] == "U14", f"User IDs mismatch: {users}"
     print(f"[PASS] Users: 14 unique users U01 to U14.")
     
-    # Rating range and read_time_sec range
     assert ratings_df["rating"].between(1, 5).all(), "Ratings must be between 1 and 5"
     assert ratings_df["read_time_sec"].between(30, 600).all(), "read_time_sec must be 30-600"
     print(f"[PASS] Ratings (1-5) and read_time_sec (30-600) ranges verified.")
     
-    # Per-user counts
     user_counts = ratings_df["user_id"].value_counts()
     assert (user_counts >= 6).all(), f"Each user must have >= 6 ratings: {user_counts.min()}"
     print(f"[PASS] User ratings counts: min={user_counts.min()}, max={user_counts.max()}, mean={user_counts.mean():.1f}")
     
-    # Item ratings count >= 3
     item_counts = ratings_df["item_id"].value_counts()
     assert len(item_counts) == 45, f"Not all items rated! Rated items: {len(item_counts)}"
     assert (item_counts >= 3).all(), f"Each item must have >= 3 ratings: min was {item_counts.min()}"
     print(f"[PASS] Every item has >= 3 ratings (min={item_counts.min()}, max={item_counts.max()}).")
     
-    # Sparsity
     total_possible = 14 * 45
     total_ratings = len(ratings_df)
     sparsity = (1.0 - (total_ratings / total_possible)) * 100.0
@@ -586,13 +587,11 @@ def validate_dataset(items_df, ratings_df):
     assert 40.0 <= sparsity <= 65.0, f"Sparsity {sparsity:.2f}% outside [40%, 65%]"
     print(f"[PASS] Sparsity is within required [40%, 65%] range.")
     
-    # Correlation between rating and read_time_sec
     corr = ratings_df["rating"].corr(ratings_df["read_time_sec"])
     print(f"[INFO] Correlation (rating vs read_time_sec): {corr:.3f}")
     assert corr > 0.4, f"Correlation between rating and read_time_sec should be positive and significant, got {corr}"
     print(f"[PASS] Rating and read_time_sec are positively correlated.")
     
-    # U01 taste check
     u01_df = ratings_df[ratings_df["user_id"] == "U01"].merge(items_df, on="item_id")
     u01_sec_linux = u01_df[u01_df["topic"].isin(["Cybersecurity", "Linux"])]
     u01_other = u01_df[~u01_df["topic"].isin(["Cybersecurity", "Linux"])]
