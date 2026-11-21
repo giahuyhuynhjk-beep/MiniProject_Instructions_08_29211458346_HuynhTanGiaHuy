@@ -1,0 +1,100 @@
+================================================================================
+CS467 ADVANCED AI - ASSIGNMENT 15 (MP-A08)
+Tech Blog and News Article Recommender Demonstration
+Student: Huỳnh Tấn Gia Huy | ID: 29211458346 | Section: CS467A (No. 08)
+================================================================================
+
+################################################################################
+TEST CASE 1: Reader Profile - U01 (Cybersecurity & Linux Specialist)
+################################################################################
+User ID: U01
+Known Taste: Enthusiast of Cybersecurity and Linux systems.
+Learned Profile Keywords: linux (0.148), hardening (0.131), security (0.118), vulnerability (0.116), privilege (0.104), memory (0.104)
+
+[1.1] Content-Based Top-5 Unread Recommendations for U01:
+Rank 1: [A010] (Linux) Debian Releases Landmark Security Overhaul Mitigating Hardware-Level Side-Channel Attacks
+        Score: 0.1034 | Matched keywords: security, kernel, hardening, linux, channel
+Rank 2: [A002] (Cybersecurity) Black Basta Ransomware Syndicate Deploys Novel Linux Evasion Tactics Against Enterprise Systems
+        Score: 0.0742 | Matched keywords: linux, hardening, kernel, systems, security
+Rank 3: [A007] (Linux) Arch Linux and Fedora Adopt Unified Kernel Images for Secure Boot Hardening
+        Score: 0.0730 | Matched keywords: linux, kernel, hardening, security, vulnerabilities
+Rank 4: [A004] (Cybersecurity) State-Sponsored APT Groups Exploit Unpatched Edge Gateway Zero-Days Globally
+        Score: 0.0724 | Matched keywords: day, zero day, zero, security, defense
+Rank 5: [A009] (Linux) Next-Generation Storage Architectures in Linux: Evaluating Bcachefs Stability and Performance
+        Score: 0.0673 | Matched keywords: linux, kernel, linux kernel, performance, sysadmin
+
+[1.2] Model Comparison Top-5 Unread for U01:
+  -- Popularity Recommender (Bayesian Average):
+     Rank 1: [A023] (Cloud/DevOps) OpenTelemetry Becomes the Gold Standard for End-to-End Distr... | Score: 3.9465
+     Rank 2: [A014] (Open-Source LLMs) Privacy-Preserving AI: Deploying Open-Source Local Language ... | Score: 3.6412
+     Rank 3: [A015] (Open-Source LLMs) Low-Latency Speculative Decoding Enables High-Throughput Ope... | Score: 3.6013
+     Rank 4: [A013] (Open-Source LLMs) 4-Bit GGUF Quantization Techniques for Efficient Local LLM I... | Score: 3.6013
+     Rank 5: [A010] (Linux) Debian Releases Landmark Security Overhaul Mitigating Hardwa... | Score: 3.5515
+
+  -- User-Based Collaborative Filtering (Mean-Centered Cosine, k=5):
+     Rank 1: [A020] (AI/ML) Sparse Mixture-of-Experts Architectures Slash Inference Cost... | Score: 4.3983
+     Rank 2: [A004] (Cybersecurity) State-Sponsored APT Groups Exploit Unpatched Edge Gateway Ze... | Score: 3.9382
+     Rank 3: [A010] (Linux) Debian Releases Landmark Security Overhaul Mitigating Hardwa... | Score: 3.9035
+     Rank 4: [A007] (Linux) Arch Linux and Fedora Adopt Unified Kernel Images for Secure... | Score: 3.8701
+     Rank 5: [A009] (Linux) Next-Generation Storage Architectures in Linux: Evaluating B... | Score: 3.8512
+
+  -- Hybrid Recommender (Optimal alpha=0.75):
+     Rank 1: [A010] (Linux) Debian Releases Landmark Security Overhaul Mitigating Hardwa... | Score: 0.9636
+     Rank 2: [A007] (Linux) Arch Linux and Fedora Adopt Unified Kernel Images for Secure... | Score: 0.6973
+     Rank 3: [A004] (Cybersecurity) State-Sponsored APT Groups Exploit Unpatched Edge Gateway Ze... | Score: 0.6969
+     Rank 4: [A009] (Linux) Next-Generation Storage Architectures in Linux: Evaluating B... | Score: 0.6464
+     Rank 5: [A002] (Cybersecurity) Black Basta Ransomware Syndicate Deploys Novel Linux Evasion... | Score: 0.6085
+
+################################################################################
+TEST CASE 2: Query Search - 'open source large language models on laptop'
+################################################################################
+Search Query: "open source large language models on laptop"
+Top-5 Matching Articles:
+Rank 1: [A014] (Open-Source LLMs) Privacy-Preserving AI: Deploying Open-Source Local Language Models on Apple Silicon and Laptops
+        Score: 0.2967 | Matched keywords: language models, open source, source, language, open
+Rank 2: [A012] (Open-Source LLMs) Small Open-Weight Language Models Achieve Parity with Frontier Systems on Consumer Hardware
+        Score: 0.2719 | Matched keywords: language models, open, language, models, laptop
+Rank 3: [A015] (Open-Source LLMs) Low-Latency Speculative Decoding Enables High-Throughput Open-Source LLM Execution Locally
+        Score: 0.1766 | Matched keywords: open source, source, open, laptop
+Rank 4: [A011] (Open-Source LLMs) Running Quantized Open-Source LLMs on Consumer Laptops with llama.cpp and Ollama
+        Score: 0.1566 | Matched keywords: open, open source, source, laptop, models
+Rank 5: [A013] (Open-Source LLMs) 4-Bit GGUF Quantization Techniques for Efficient Local LLM Inference on CPU and Laptop GPU
+        Score: 0.1434 | Matched keywords: laptop, open source, source, open
+
+################################################################################
+TEST CASE 3: Cold-Start Unrated New Article
+################################################################################
+New Article Headline: "Critical zero-day vulnerability discovered in the Linux kernel allows privilege escalation; maintainers rush emergency patch"
+New Article Summary:  "Security researchers uncovered a critical zero-day memory vulnerability inside the Linux kernel allowing unprivileged local users to achieve root execution. Kernel maintainers have released an emergency security patch and advised rapid deployment across enterprise Linux server fleets."
+New Article Tags:     "linux;kernel;vulnerability;zero-day;privilege-escalation;patch;security"
+
+[3.1] Top-5 Most Similar Existing Articles in Catalog:
+Rank 1: [A001] (Cybersecurity) Zero-Day Privilege Escalation Vulnerability Discovered in Linux Kernel Netfilter
+        Score: 0.6330 | Matched keywords: vulnerability, linux kernel, kernel, day, zero day
+Rank 2: [A008] (Linux) Modern Linux Server Hardening: Best Practices for Seccomp, AppArmor, and Namespaces
+        Score: 0.1573 | Matched keywords: linux, privilege, linux server, privilege escalation, escalation
+Rank 3: [A005] (Cybersecurity) Automated Vulnerability Auditing Identifies Critical Flaws in Open-Source Cryptography Libraries
+        Score: 0.1256 | Matched keywords: vulnerability, critical, maintainers, patch, linux
+Rank 4: [A010] (Linux) Debian Releases Landmark Security Overhaul Mitigating Hardware-Level Side-Channel Attacks
+        Score: 0.1096 | Matched keywords: kernel, security, maintainers, patch, linux
+Rank 5: [A006] (Linux) Linux 6.14 Kernel Release Brings Real-Time Preemption and Enhanced eBPF Observability
+        Score: 0.0840 | Matched keywords: kernel, linux, linux kernel, security, server
+
+[3.2] Top-3 Likely Readers (User Profile Cosine Similarity):
+Rank 1: User [U01] | Similarity Score: 0.3870 | Matched keywords: vulnerability, linux, day, zero day, kernel
+Rank 2: User [U09] | Similarity Score: 0.2758 | Matched keywords: linux, kernel, vulnerability, linux kernel, day
+Rank 3: User [U14] | Similarity Score: 0.2211 | Matched keywords: kernel, linux, security, privilege, zero
+
+[3.3] Analytical Cold-Start Explanation:
+  * Why Collaborative Filtering Fails: User-Based CF relies on existing user-item interaction matrices.
+    A brand-new article has zero ratings from any user, creating an empty rating vector (cold item problem).
+    Consequently, CF cannot compute neighborhood similarities and yields an undefined prediction.
+  * Why Popularity Baseline Fails: Popularity calculates Bayesian average based on historical ratings.
+    With v=0 ratings, it falls back strictly to the global mean (C=3.0) and cannot differentiate or rank the new item.
+  * Why Content-Based NLP Succeeds: Content-based vectorization operates purely in the semantic text space.
+    It computes TF-IDF representations directly from the headline, summary, and tags, enabling immediate
+    cosine similarity matching against both existing articles and accumulated reader taste profiles.
+
+================================================================================
+DEMONSTRATION COMPLETE - ALL 3 TEST CASES EXECUTED SUCCESSFULLY
+================================================================================
